@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modern Schools Management System</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <!-- Font Awesome (icons) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+  <style>
+    :root{
+      --brand:#2563eb; --brand-600:#1d4ed8; --surface:#f3f4f6; --card:#ffffff;
+      --ring:0 0 0 .25rem rgba(37,99,235,.25);
+    }
+
+    html,body{height:100%;}
+    body{
+      font-family:system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",sans-serif;
+      background-color:var(--surface);
+    }
+    .app-card{border:0;border-radius:1rem;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);}
+    .app-card .card-header{border:0;background:transparent;font-weight:700;color:var(--bs-emphasis-color);}
+    .focus-ring:focus{outline:none;box-shadow:var(--ring);}
+    .app-pills .nav-link{border-radius:999px;padding:.5rem 1rem;}
+    .app-alert i{font-size:1.25rem}
+    .stat-value{font-weight:800;letter-spacing:.2px}
+    .rounded-xl{border-radius:1rem!important}
+
+    /* Circular stat ring (with accessible label nearby) */
+    .ring{width:160px;height:160px;border-radius:50%;
+      background:conic-gradient(var(--bs-success) 0 var(--pct,75%), var(--bs-success-bg-subtle) var(--pct,75%) 100%);
+      display:grid;place-items:center;}
+    .ring > span{font-weight:800;font-size:1.5rem}
+
+    @media print{.no-print{display:none!important} body{background:#fff} .app-card{box-shadow:none}}
+
+    /* Dark mode body background (Bootstrap handles most colors) */
+    [data-bs-theme="dark"] body{background-color:#0b0d12;}
+
+    .kbd{padding:.1rem .35rem;border:1px solid var(--bs-border-color);border-bottom-width:2px;border-radius:.25rem;background:var(--bs-body-bg);font-family:monospace;font-size:.85em}
+    .rag-cite{font-size:.85rem}
+    .rag-cite code{font-size:.85em}
+
+    /* Compact list-group tweaks for cards that are more "summary" than "list" */
+    .list-group-item.px-0.border-0 + .list-group-item.px-0.border-0{border-top:1px dashed var(--bs-border-color)!important;}
+  </style>
+</head>
+<body class="min-vh-100 d-flex flex-column">
+  <!-- Header / Navigation -->
+  <header>
+    <nav class="navbar navbar-expand-lg border-bottom bg-body sticky-top no-print" aria-label="Main navigation">
+      <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+          <i class="fa-solid fa-school" aria-hidden="true"></i>
+          <span>Schools Management Dashboard</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+          <button id="themeToggle" class="btn btn-outline-secondary btn-sm focus-ring" type="button" aria-pressed="false" aria-label="Toggle dark mode">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <button class="navbar-toggler focus-ring" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+
+        <div class="collapse navbar-collapse" id="topNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 app-pills" role="tablist" aria-label="Dashboard role tabs">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active focus-ring" id="teacher-tab" data-bs-toggle="pill" data-bs-target="#teacher-dashboard" role="tab" aria-controls="teacher-dashboard" aria-selected="true">
+                <i class="fas fa-chalkboard-teacher me-2" aria-hidden="true"></i>Teacher
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link focus-ring" id="student-tab" data-bs-toggle="pill" data-bs-target="#student-dashboard" role="tab" aria-controls="student-dashboard" aria-selected="false">
+                <i class="fas fa-user-graduate me-2" aria-hidden="true"></i>Student
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link focus-ring" id="parent-tab" data-bs-toggle="pill" data-bs-target="#parent-dashboard" role="tab" aria-controls="parent-dashboard" aria-selected="false">
+                <i class="fas fa-people-roof me-2" aria-hidden="true"></i>Parent
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link focus-ring" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-dashboard" role="tab" aria-controls="admin-dashboard" aria-selected="false">
+                <i class="fas fa-user-shield me-2" aria-hidden="true"></i>Admin
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <main id="main" class="container my-4 flex-grow-1" tabindex="-1">
+    <section class="card app-card rounded-xl">
+      <div class="card-body p-4 p-md-5">
+        <!-- Toast anchor -->
+        <div class="position-fixed bottom-0 end-0 p-3 no-print" style="z-index:1080">
+          <div id="liveToast" class="toast align-items-center text-bg-primary border-0" role="status" aria-live="polite" aria-atomic="true">
+            <div class="d-flex">
+              <div class="toast-body">
+                <i class="fa-solid fa-robot me-2" aria-hidden="true"></i>
+                <span id="toastText">AI tips enabled. We’ll surface insights on each tab.</span>
+              </div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-content" id="dashboard-tabs">
+          <!-- Teacher -->
+          <div class="tab-pane fade show active" id="teacher-dashboard" role="tabpanel" aria-labelledby="teacher-tab" tabindex="0">
+            <header class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+              <div>
+                <h1 class="h3 fw-bold mb-1">Teacher Dashboard</h1>
+                <p class="text-secondary mb-0">Today: <span id="teacher-today"></span></p>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary focus-ring"><i class="fa-regular fa-square-check me-2" aria-hidden="true"></i>Take Register</button>
+                <button class="btn btn-outline-secondary focus-ring"><i class="fa-solid fa-print me-2" aria-hidden="true"></i>Print</button>
+              </div>
+            </header>
+
+            <!-- AI Alert -->
+            <div class="alert alert-danger d-flex align-items-start gap-3 app-alert rounded-3 shadow-sm" role="alert" aria-live="polite">
+              <i class="fas fa-triangle-exclamation mt-1" aria-hidden="true"></i>
+              <div>
+                <h2 class="h5 fw-semibold mb-1">Proactive Alert: 2 At-Risk Students</h2>
+                <p class="mb-2">AI indicates declining attendance and grades. Review suggested interventions and notify a counselor.</p>
+                <button class="btn btn-sm btn-outline-danger focus-ring"><i class="fa-solid fa-user-nurse me-1" aria-hidden="true"></i>Open interventions</button>
+              </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="row g-4">
+              <!-- Class cards -->
+              <div class="col-md-6 col-lg-4">
+                <article class="card app-card h-100">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><strong>History 101</strong> • Period 3</span>
+                    <span class="badge text-bg-secondary">Room 215</span>
+                  </div>
+                  <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                      <li><span class="fw-semibold">Students:</span> 28</li>
+                      <li><span class="fw-semibold">Assignments Due:</span> 3</li>
+                      <li><span class="fw-semibold">Last Grade:</span> Midterm Exam</li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-2" aria-label="Register completion for History 101">
+                      <span class="small text-secondary">Register completion</span>
+                      <div class="progress flex-grow-1" role="progressbar" aria-label="Register completion" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" style="height:8px">
+                        <div class="progress-bar bg-success" style="width:72%"></div>
+                      </div>
+                      <span class="small fw-semibold">72%</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="col-md-6 col-lg-4">
+                <article class="card app-card h-100">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><strong>English Literature</strong> • Period 5</span>
+                    <span class="badge text-bg-secondary">Room 102</span>
+                  </div>
+                  <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                      <li><span class="fw-semibold">Students:</span> 25</li>
+                      <li><span class="fw-semibold">Assignments Due:</span> 1</li>
+                      <li><span class="fw-semibold">Last Grade:</span> Essay 2</li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-2" aria-label="Register completion for English Literature">
+                      <span class="small text-secondary">Register completion</span>
+                      <div class="progress flex-grow-1" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="height:8px">
+                        <div class="progress-bar" style="width:100%"></div>
+                      </div>
+                      <span class="small fw-semibold">100%</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <!-- Communications -->
+              <div class="col-lg-4">
+                <section class="card app-card h-100" aria-labelledby="recent-comms-h">
+                  <div id="recent-comms-h" class="card-header"><i class="fa-regular fa-message me-2" aria-hidden="true"></i>Recent Communications</div>
+                  <div class="card-body">
+                    <div class="list-group list-group-flush">
+                      <div class="list-group-item px-0 border-0 d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center" style="width:40px;height:40px" aria-hidden="true">
+                          <i class="fa-regular fa-user"></i>
+                        </div>
+                        <div>
+                          <p class="mb-0 fw-semibold">John Doe <small class="text-muted ms-1">2h ago</small></p>
+                          <p class="text-secondary mb-0">Re: Question about assignment 5…</p>
+                        </div>
+                      </div>
+                      <div class="list-group-item px-0 border-0 d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center" style="width:40px;height:40px" aria-hidden="true">
+                          <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <div>
+                          <p class="mb-0 fw-semibold">Admin Staff <small class="text-muted ms-1">4h ago</small></p>
+                          <p class="text-secondary mb-0">Reminder: Faculty meeting today at 3 PM.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student -->
+          <div class="tab-pane fade" id="student-dashboard" role="tabpanel" aria-labelledby="student-tab" tabindex="0">
+            <header class="mb-4">
+              <h1 class="h3 fw-bold mb-1">Student Dashboard</h1>
+              <p class="text-secondary mb-0">Overview of progress and tasks</p>
+            </header>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-4">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-5 text-primary">89%</div>
+                    <p class="text-muted mb-0">Overall Grade</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="ring mx-auto" style="--pct:98%" aria-label="Attendance 98 percent"><span>98%</span></div>
+                    <p class="text-muted mt-2 mb-0">Attendance</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-5 text-warning">3</div>
+                    <p class="text-muted mb-0">Assignments Due</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <section class="card app-card" aria-labelledby="assignments-h">
+              <div id="assignments-h" class="card-header"><i class="fa-regular fa-clipboard me-2" aria-hidden="true"></i>My Assignments</div>
+              <div class="card-body">
+                <div class="list-group list-group-flush">
+                  <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                      <p class="mb-0 fw-semibold">History Essay</p>
+                      <small class="text-muted">Due: 20 Oct 2025</small>
+                    </div>
+                    <span class="badge rounded-pill text-bg-warning">Pending</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <div>
+                      <p class="mb-0 fw-semibold">Math Homework</p>
+                      <small class="text-muted">Due: 18 Oct 2025</small>
+                    </div>
+                    <span class="badge rounded-pill text-bg-warning">Pending</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Parent -->
+          <div class="tab-pane fade" id="parent-dashboard" role="tabpanel" aria-labelledby="parent-tab" tabindex="0">
+            <header class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+              <div>
+                <h1 class="h3 fw-bold mb-1">Parent Portal</h1>
+                <p class="text-secondary mb-0">Welcome, <span class="fw-semibold">Parent/Guardian</span>. View attendance, messages, and ask policy questions.</p>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary focus-ring" data-bs-toggle="modal" data-bs-target="#ragModal">
+                  <i class="fa-solid fa-circle-question me-2" aria-hidden="true"></i>Policies Q&A
+                </button>
+              </div>
+            </header>
+
+            <div class="row g-4">
+              <!-- Attendance card -->
+              <div class="col-lg-4">
+                <section class="card app-card text-center h-100" aria-labelledby="parent-attendance-h">
+                  <div id="parent-attendance-h" class="card-header">
+                    <i class="fa-regular fa-calendar-check me-2" aria-hidden="true"></i>Attendance
+                  </div>
+                  <div class="card-body">
+                    <div class="ring mx-auto mb-3" style="--pct:94%" aria-label="Attendance 94 percent"><span>94%</span></div>
+                    <p class="text-muted mb-0">Term to date</p>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Messages -->
+              <div class="col-lg-4">
+                <section class="card app-card h-100" aria-labelledby="parent-messages-h">
+                  <div id="parent-messages-h" class="card-header"><i class="fa-regular fa-message me-2" aria-hidden="true"></i>Messages</div>
+                  <div class="card-body">
+                    <div class="list-group list-group-flush">
+                      <div class="list-group-item px-0 border-0">
+                        <p class="mb-0 fw-semibold">Form Tutor</p>
+                        <small class="text-muted">Parents evening booking opens Friday.</small>
+                      </div>
+                      <div class="list-group-item px-0 border-0">
+                        <p class="mb-0 fw-semibold">Attendance</p>
+                        <small class="text-muted">Reminder to report absences before 9am.</small>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <!-- Report Absence -->
+              <div class="col-lg-4">
+                <section class="card app-card h-100" aria-labelledby="report-absence-h">
+                  <div id="report-absence-h" class="card-header"><i class="fa-solid fa-file-waveform me-2" aria-hidden="true"></i>Report Absence</div>
+                  <div class="card-body">
+                    <form id="absenceForm" class="row g-3">
+                      <div class="col-12">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" required>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Reason</label>
+                        <select class="form-select" required>
+                          <option value="">Select…</option>
+                          <option>Illness</option>
+                          <option>Appointment</option>
+                          <option>Family</option>
+                          <option>Other</option>
+                        </select>
+                      </div>
+                      <div class="col-12">
+                        <label class="form-label">Notes (optional)</label>
+                        <textarea class="form-control" rows="3" placeholder="Anything we should know?"></textarea>
+                      </div>
+                      <div class="col-12 d-grid">
+                        <button class="btn btn-primary" type="submit"><i class="fa-regular fa-paper-plane me-2" aria-hidden="true"></i>Submit</button>
+                      </div>
+                    </form>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin -->
+          <div class="tab-pane fade" id="admin-dashboard" role="tabpanel" aria-labelledby="admin-tab" tabindex="0">
+            <header class="mb-4">
+              <h1 class="h3 fw-bold mb-1">Administrator Dashboard</h1>
+              <p class="text-secondary mb-0">School-wide metrics and alerts</p>
+            </header>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-6 col-lg-3">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-6 text-body">1,250</div>
+                    <p class="text-muted mb-0">Total Students</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-6 text-body">150</div>
+                    <p class="text-muted mb-0">Teachers</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-6 text-success">95%</div>
+                    <p class="text-muted mb-0">Overall Attendance</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 col-lg-3">
+                <div class="card app-card text-center">
+                  <div class="card-body">
+                    <div class="stat-value display-6 text-danger">5</div>
+                    <p class="text-muted mb-0">Current System Alerts</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <section class="card app-card" aria-labelledby="alerts-h">
+              <div id="alerts-h" class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <span><i class="fa-solid fa-shield-halved me-2" aria-hidden="true"></i>Recent System Alerts</span>
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ragModal">
+                  <i class="fa-solid fa-circle-question me-1" aria-hidden="true"></i>Ask Policy (RAG)
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="list-group list-group-flush">
+                  <div class="list-group-item d-flex align-items-center bg-warning-subtle border-start border-4 border-warning rounded-3 mb-2 p-3">
+                    <i class="fas fa-sync-alt flex-shrink-0 me-3 text-warning" aria-hidden="true"></i>
+                    <div>
+                      <p class="mb-0 fw-semibold">High-Volume Data Sync</p>
+                      <small class="text-muted">Semester grades sync is impacting API response times.</small>
+                    </div>
+                  </div>
+                  <div class="list-group-item d-flex align-items-center bg-danger-subtle border-start border-4 border-danger rounded-3 p-3">
+                    <i class="fas fa-lock flex-shrink-0 me-3 text-danger" aria-hidden="true"></i>
+                    <div>
+                      <p class="mb-0 fw-semibold">Security Alert</p>
+                      <small class="text-muted">Abnormal login attempts detected from a non-whitelisted IP range.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="container py-4 text-center text-secondary small">
+    © <span id="year"></span> School Management System — Prototype UI
+  </footer>
+
+  <!-- RAG Modal -->
+  <div class="modal fade" id="ragModal" tabindex="-1" aria-labelledby="ragModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="ragModalLabel"><i class="fa-solid fa-circle-question me-2" aria-hidden="true"></i>Policies Q&A (RAG Demo)</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+         
+          <form id="ragForm" class="mb-3" aria-label="Policy question form">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fa-regular fa-message" aria-hidden="true"></i></span>
+              <input id="ragInput" type="text" class="form-control" placeholder="Type your question…" required>
+              <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass me-1" aria-hidden="true"></i>Ask</button>
+            </div>
+          </form>
+          <div id="ragResult" class="d-none">
+            <div class="alert alert-success d-flex align-items-start gap-3 mb-2" role="status" aria-live="polite">
+              <i class="fa-solid fa-lightbulb mt-1" aria-hidden="true"></i>
+              <div>
+                <div class="fw-semibold" id="ragAnswer">Answer here…</div>
+                <div class="text-muted rag-cite mt-1">
+                  Source: <code id="ragDoc"></code> • <span id="ragSnippet"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+         
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    (function () {
+      // ---------- Helpers ----------
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const $ = (sel) => document.querySelector(sel);
+      const $all = (sel) => Array.from(document.querySelectorAll(sel));
+
+      function cleanBase(url){
+        if(!url) return '';
+        return url.replace(/\/+$/,'');
+      }
+
+      function showToast(message, variant='primary') {
+        const toastEl = document.getElementById('liveToast');
+        if (!toastEl) return;
+        const text = document.getElementById('toastText');
+        text.textContent = message;
+        toastEl.className = `toast align-items-center text-bg-${variant} border-0`;
+        const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 2800 });
+        toast.show();
+      }
+
+      // ---------- Dates ----------
+      const today = new Date();
+      $('#year').textContent = today.getFullYear();
+      $('#teacher-today').textContent = today.toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'short', day:'numeric' });
+
+      // ---------- Persist active tab across reloads ----------
+      const navButtons = $all('[data-bs-toggle="pill"]');
+      const lastTabKey = 'sms.activeTab';
+      navButtons.forEach(btn => {
+        btn.addEventListener('shown.bs.tab', (ev) => {
+          const target = ev.target.getAttribute('data-bs-target');
+          localStorage.setItem(lastTabKey, target);
+          document.querySelector(target)?.scrollIntoView({ behavior: prefersReduced ? 'auto':'smooth', block: 'start' });
+        });
+      });
+      const last = localStorage.getItem(lastTabKey);
+      if (last) {
+        const toShow = document.querySelector(`[data-bs-target="${last}"]`);
+        if (toShow) new bootstrap.Tab(toShow).show();
+      }
+
+      // ---------- Theme toggle ----------
+      const themeKey = 'sms.theme';
+      const themeToggle = $('#themeToggle');
+      function setTheme(mode){
+        document.documentElement.setAttribute('data-bs-theme', mode);
+        localStorage.setItem(themeKey, mode);
+        themeToggle.setAttribute('aria-pressed', mode === 'dark');
+        themeToggle.innerHTML = mode === 'dark'
+          ? '<i class="fa-solid fa-sun" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-moon" aria-hidden="true"></i>';
+      }
+      setTheme(localStorage.getItem(themeKey) || 'light');
+      themeToggle.addEventListener('click', () => {
+        setTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+      });
+
+      // ---------- Welcome toast (first visit per session) ----------
+      if (!sessionStorage.getItem('sms.toasted')) {
+        const toastEl = document.getElementById('liveToast');
+        if (toastEl) {
+          const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3500 });
+          toast.show();
+          sessionStorage.setItem('sms.toasted', '1');
+        }
+      }
+
+      // ---------- Keyboard UX for tabs (Left/Right) ----------
+      navButtons.forEach(btn => {
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const arr = Array.from(navButtons);
+            const idx = arr.indexOf(e.currentTarget);
+            let nextIdx = e.key === 'ArrowRight' ? idx + 1 : idx - 1;
+            if (nextIdx < 0) nextIdx = arr.length - 1;
+            if (nextIdx >= arr.length) nextIdx = 0;
+            arr[nextIdx].focus();
+          }
+        });
+      });
+
+      // ---------- Parent: absence form ----------
+      const absenceForm = $('#absenceForm');
+      absenceForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        absenceForm.reset();
+        showToast('Absence submitted. (Demo)', 'success');
+      });
+
+      // ---------- RAG DEMO ----------
+      // Optional backend hook: set window.SMS_BACKEND_URL = "http://localhost:8000"
+      async function askPolicyBackend(question){
+        try {
+          if (!window.SMS_BACKEND_URL) return null;
+          const base = cleanBase(String(window.SMS_BACKEND_URL));
+          const res = await fetch(base + '/ask', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ id: 'ui', question })
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const js = await res.json();
+          return { answer: js.answers, doc_id: js.doc_id || '—', snippet: '' };
+        } catch (e) {
+          console.warn('Backend ask failed, falling back to local demo:', e);
+          return null;
+        }
+      }
+
+      // Tiny mock policy store. (Used if no backend or backend fails.)
+      const policyChunks = [
+        {
+          doc_id: "attendance_policy.pdf",
+          text: "After 3 unexcused absences the school will contact the parent/guardian by phone or email to discuss attendance and support.",
+          snippet: "Attendance escalation: contact after 3 unexcused absences."
+        },
+        {
+          doc_id: "code_of_conduct.pdf",
+          text: "Use respectful language and behavior. Repeated disruption may result in detention or a behavior plan with parental notification.",
+          snippet: "Behavior expectations and consequences."
+        },
+        {
+          doc_id: "grading_policy.pdf",
+          text: "Late work is accepted within one week with a maximum penalty of 10%. Extensions require prior approval.",
+          snippet: "Late work rules and extensions."
+        }
+      ];
+
+      // Simple normalization + keyword overlap scoring
+      const normalize = s => (s || "")
+        .toLowerCase()
+        .normalize("NFKC")
+        .replace(/[^\p{L}\p{N}\s]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      function scoreSentence(s, qTerms){
+        const terms = new Set(normalize(s).split(" ").filter(w => w.length > 2));
+        let overlap = 0;
+        qTerms.forEach(t => { if (terms.has(t)) overlap++; });
+        const hasNum = /\b\d+(\.\d+)?\b/.test(s);
+        const wantsNum = [...qTerms].join(" ").match(/(^|\s)(how\s+many|after\s+how\s+many)/i);
+        return overlap + (hasNum && wantsNum ? 2 : 0);
+      }
+
+      function localRAG(query){
+        const q = normalize(query);
+        if (!q) return null;
+        const qTerms = new Set(q.split(" ").filter(w => w.length > 2));
+        let best = null, bestScore = -1;
+
+        policyChunks.forEach(ch => {
+          const s = scoreSentence(ch.text, qTerms);
+          if (s > bestScore) { bestScore = s; best = ch; }
+        });
+
+        if (bestScore <= 0) {
+          return { answer: "I don't know.", doc_id: null, snippet: "" };
+        }
+        let answer = best.text;
+        if (answer.length > 220) answer = answer.slice(0, 220).trim() + "…";
+        return { answer, doc_id: best.doc_id, snippet: best.snippet };
+      }
+
+      const ragForm = $('#ragForm');
+      const ragInput = $('#ragInput');
+      const ragResult = $('#ragResult');
+      const ragAnswer = $('#ragAnswer');
+      const ragDoc = $('#ragDoc');
+      const ragSnippet = $('#ragSnippet');
+
+      ragForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const q = ragInput.value.trim();
+        ragAnswer.textContent = 'Thinking…';
+        ragDoc.textContent = '—';
+        ragSnippet.textContent = '';
+        ragResult.classList.remove('d-none');
+
+        const backend = await askPolicyBackend(q);
+        const res = backend || localRAG(q);
+
+        if (!res || res.answer === "I don't know.") {
+          ragAnswer.textContent = "I don't know.";
+          ragDoc.textContent = "—";
+          ragSnippet.textContent = "No sufficiently similar policy passage found.";
+        } else {
+          ragAnswer.textContent = res.answer;
+          ragDoc.textContent = res.doc_id || "—";
+          ragSnippet.textContent = res.snippet || "";
+        }
+      });
+
+      // Prefill a common question when modal opens
+      const ragModal = $('#ragModal');
+      ragModal?.addEventListener('shown.bs.modal', () => {
+        if (!ragInput.value) ragInput.value = "After how many unexcused absences will the school contact a guardian?";
+        ragInput.focus();
+      });
+    })();
+  </script>
+
+  <!-- Optional: set your backend URL here to enable real RAG answers -->
+  <!-- <script>window.SMS_BACKEND_URL = "http://localhost:8000";</script> -->
+</body>
+</html>
