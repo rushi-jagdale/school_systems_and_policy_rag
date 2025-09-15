@@ -1,4 +1,4 @@
-# Task A — Design Thinking (Docs & UI)
+# Task A : Design Thinking (Docs & UI)
 
 Here’s the design thinking write-up and a small UI prototype for the modern School Management System.
 
@@ -12,7 +12,7 @@ Here’s the design thinking write-up and a small UI prototype for the modern Sc
 
 
 
-# School Policy RAG — Task B
+# School Policy RAG : Task B
 
 A small retrieval‑augmented QA system that answers questions about three school policy PDFs:
 
