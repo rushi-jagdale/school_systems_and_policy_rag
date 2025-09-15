@@ -2,9 +2,8 @@
 
 Here’s the design thinking write-up and a small UI prototype for the modern School Management System.
 
-**Task A (PDF):** [TaskA_Design_Solution.pdf](static/TaskA_Design_Solution.pdf)  
-  
-
+**Task A (PDF):** [TaskA_Design_Solution](static/Task_A_design_solution.pdf)  
+ 
 **HTML UI prototype:** [taskA_ui_prototype](static/index.html)  
   A static, click-through mockup showing Teacher, Student, Parent, and Admin views.  
   Open it in your browser (no backend needed). Great for demos and quick feedback.
