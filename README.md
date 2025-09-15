@@ -1,3 +1,16 @@
+# Task A — Design Thinking (Docs & UI)
+
+Here’s the design thinking write-up and a small UI prototype for the modern School Management System.
+
+**Task A (PDF):** [TaskA_Design_Solution.pdf](static/TaskA_Design_Solution.pdf)  
+  
+
+**HTML UI prototype:** [taskA_ui_prototype](static/index.html)  
+  A static, click-through mockup showing Teacher, Student, Parent, and Admin views.  
+  Open it in your browser (no backend needed). Great for demos and quick feedback.
+
+
+
 # School Policy RAG — Task B
 
 A small retrieval‑augmented QA system that answers questions about three school policy PDFs:
